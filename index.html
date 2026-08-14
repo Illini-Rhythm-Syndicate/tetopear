@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>teto pear</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: 'Baloo 2', 'Comic Sans MS', cursive, sans-serif;
+    background: #f9f9f9;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    transition: background 0.6s ease;
+  }
+
+  body.evil { background: #060606; transition: none; }
+
+  .stage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0;
+  }
+
+  #pear {
+    width: min(60vw, 380px);
+    height: auto;
+    transition: none;
+  }
+
+  body.evil #pear {
+    animation: grow 6s linear forwards, flickerOut 0.6s steps(1, end) 6s forwards;
+  }
+
+  @keyframes grow {
+    from { transform: scale(1); }
+    to   { transform: scale(4); }
+  }
+
+  @keyframes flickerOut {
+    0%   { opacity: 1; }
+    15%  { opacity: 0; }
+    30%  { opacity: 1; }
+    45%  { opacity: 0; }
+    60%  { opacity: 1; }
+    75%  { opacity: 0; }
+    88%  { opacity: 1; }
+    100% { opacity: 0; visibility: hidden; }
+  }
+
+  #bubble {
+    position: relative;
+    background: #ffffff;
+    border: 3px solid #333;
+    border-radius: 24px;
+    padding: 18px 26px;
+    margin-bottom: 26px;
+    max-width: min(90vw, 460px);
+    text-align: center;
+    font-size: clamp(1.2rem, 4vw, 1.7rem);
+    color: #333;
+    opacity: 0;
+    transform: scale(0) translateY(20px);
+    transform-origin: bottom center;
+    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+    box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+  }
+
+  #bubble.show {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+
+  #bubble::after {
+    content: '';
+    position: absolute;
+    bottom: -16px;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 10px solid transparent;
+    border-top: 14px solid #333;
+    border-bottom: 0;
+  }
+
+  .teto { color: #e0007a; font-weight: 700; }
+  .rhythm { color: #3b6fe0; font-weight: 700; }
+
+  #buttons {
+    display: flex;
+    gap: 16px;
+    justify-content: center;
+    margin-top: 8px;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+
+  #buttons.show { opacity: 1; pointer-events: auto; }
+
+  button.btn {
+    font-family: inherit;
+    font-size: 1.2rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 999px;
+    padding: 12px 40px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  }
+
+  button.btn:hover { transform: translateY(-3px) scale(1.05); }
+  button.btn:active { transform: scale(0.96); }
+
+  #btnYes { background: #b8e6b8; color: #1f6b2a; }
+  #btnNo  { background: #f6b8b8; color: #8f2424; }
+  #btnContinue { background: #ffe3a9; color: #7a5200; }
+
+  #bubble a {
+    color: #5865F2;
+    font-weight: 700;
+  }
+</style>
+</head>
+<body>
+  <div class="stage">
+    <div id="bubble"><span id="bubbleText"></span></div>
+    <img id="pear" src="tetopear.png" alt="kasane teto pear">
+    <div id="buttons">
+      <button class="btn" id="btnYes">yes</button>
+      <button class="btn" id="btnNo">no</button>
+      <button class="btn" id="btnContinue" style="display:none">continue</button>
+    </div>
+  </div>
+
+<script>
+  const TETO_LINK = 'https://discord.gg/xeHHTaPfh';
+  const RHYTHM_LINK = 'https://discord.gg/JtV7BdHzZE';
+
+  const bubble = document.getElementById('bubble');
+  const bubbleText = document.getElementById('bubbleText');
+  const buttons = document.getElementById('buttons');
+  const btnYes = document.getElementById('btnYes');
+  const btnNo = document.getElementById('btnNo');
+  const btnContinue = document.getElementById('btnContinue');
+  const pear = document.getElementById('pear');
+
+  let noCount = 0;
+  let asked = { teto: false, rhythm: false };
+  let continueTarget = null;
+  let currentPrompt = null;
+
+  function showPrompt(html, setup) {
+    bubble.classList.remove('show');
+    buttons.classList.remove('show');
+    setTimeout(() => {
+      bubbleText.innerHTML = html;
+      setup();
+      bubble.classList.add('show');
+      setTimeout(() => buttons.classList.add('show'), 450);
+    }, 300);
+  }
+
+  function askTeto() {
+    asked.teto = true;
+    currentPrompt = 'teto';
+    showPrompt('do you like <span class="teto">kasane teto</span>?', setYesNo);
+  }
+
+  function askRhythm() {
+    asked.rhythm = true;
+    currentPrompt = 'rhythm';
+    showPrompt('do you like <span class="rhythm">rhythm games</span>?', setYesNo);
+  }
+
+  function setYesNo() {
+    btnYes.style.display = '';
+    btnNo.style.display = '';
+    btnContinue.style.display = 'none';
+  }
+
+  function setContinue() {
+    btnYes.style.display = 'none';
+    btnNo.style.display = 'none';
+    btnContinue.style.display = '';
+  }
+
+  function sayJoin(club, link) {
+    showPrompt('you should join the ' + club + '! <a href="' + link + '" target="_blank" rel="noopener">join here</a>', setContinue);
+  }
+
+  function goEvil() {
+    document.body.classList.add('evil');
+    bubble.classList.remove('show');
+    buttons.classList.remove('show');
+    pear.src = 'tetoevil.png';
+  }
+
+  btnYes.addEventListener('click', () => {
+    if (currentPrompt === 'teto') {
+      sayJoin('Illinois Vocaloid Research Group', TETO_LINK);
+      continueTarget = 'rhythm';
+    } else {
+      sayJoin('Illini Rhythm Syndicate', RHYTHM_LINK);
+      continueTarget = 'teto';
+    }
+  });
+
+  btnNo.addEventListener('click', () => {
+    noCount++;
+    if (noCount >= 2) {
+      goEvil();
+    } else if (currentPrompt === 'teto') {
+      askRhythm();
+    } else {
+      askTeto();
+    }
+  });
+
+  btnContinue.addEventListener('click', () => {
+    if (continueTarget === 'rhythm') askRhythm();
+    else askTeto();
+  });
+
+  window.addEventListener('load', askTeto);
+</script>
+</body>
+</html>
