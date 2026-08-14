@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>teto pear</title>
-<link rel="preload" as="image" href="tetoevil.png">
+<link rel="preload" as="image" href="tetoevil.png" fetchpriority="high">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;700&display=swap" rel="stylesheet">
@@ -32,13 +32,15 @@
     gap: 0;
   }
 
-  #pear {
+  #pear, #pearEvil {
     width: min(45vmin, 85vw);
     height: auto;
     transition: none;
   }
 
-  body.evil #pear {
+  #pearEvil { display: none; }
+
+  body.evil #pearEvil {
     animation: grow 6s linear forwards, flickerOut 0.6s steps(1, end) 6s forwards;
   }
 
@@ -136,6 +138,7 @@
   <div class="stage">
     <div id="bubble"><span id="bubbleText"></span></div>
     <img id="pear" src="tetopear.png" alt="kasane teto pear">
+    <img id="pearEvil" src="tetoevil.png" alt="">
     <div id="buttons">
       <button class="btn" id="btnYes">yes</button>
       <button class="btn" id="btnNo">no</button>
@@ -154,6 +157,8 @@
   const btnNo = document.getElementById('btnNo');
   const btnContinue = document.getElementById('btnContinue');
   const pear = document.getElementById('pear');
+  const pearEvil = document.getElementById('pearEvil');
+  pearEvil.decode().catch(() => {});
 
   let noCount = 0;
   let asked = { teto: false, rhythm: false };
@@ -203,7 +208,8 @@
     document.body.classList.add('evil');
     bubble.classList.remove('show');
     buttons.classList.remove('show');
-    pear.src = 'tetoevil.png';
+    pear.style.display = 'none';
+    pearEvil.style.display = '';
   }
 
   btnYes.addEventListener('click', () => {
@@ -231,8 +237,6 @@
     if (continueTarget === 'rhythm') askRhythm();
     else askTeto();
   });
-
-  new Image().src = 'tetoevil.png';
 
   window.addEventListener('load', askTeto);
 </script>
